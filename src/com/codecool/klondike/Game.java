@@ -102,14 +102,11 @@ public class Game extends Pane {
 
         if (pile != null) {
             handleValidMove(card, pile);
-//            alertWin();
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
         draggedCards.clear();
-        for (Pile p : foundationPiles) {
-            System.out.println(p.getCards().size());
-        }
+        alertWin();
     };
 
     public void alertWin() {
@@ -137,16 +134,15 @@ public class Game extends Pane {
 
     public boolean isGameWon() {
         int fullPiles = 0;
-        for (Pile pile : foundationPiles) {
-//            if (pile.numOfCards() == Card.ranks.values().length) {
-//                fullPiles++;
-//            }
-            if (pile.numOfCards() > 0) {
+        int almostFullPile = 0;
+        for (int i = 0; i < foundationPiles.size(); i++) {
+            if (foundationPiles.get(i).numOfCards() == Card.ranks.values().length) {
                 fullPiles++;
+            } else if (foundationPiles.get(i).numOfCards() == 12) {
+                almostFullPile++;
             }
         }
-        System.out.println(fullPiles);
-        return fullPiles == 2;
+        return fullPiles == 3 && almostFullPile == 1;
     }
 
     Game() {
@@ -258,6 +254,10 @@ public class Game extends Pane {
             sourcePile.removeCard(card);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
+//        for (Card card : cardsToAdd) {
+//            destPile.simpleAdd(card);
+//        }
+//        System.out.println(destPile.getCards().size());
     }
 
 
