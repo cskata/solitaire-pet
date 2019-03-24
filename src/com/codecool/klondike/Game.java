@@ -1,5 +1,6 @@
 package com.codecool.klondike;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -49,20 +50,6 @@ public class Game extends Pane {
             card.setMouseTransparent(false);
             System.out.println("Placed " + card + " to the waste.");
         }
-
-        if (clickedPile.getPileType() == Pile.PileType.TABLEAU) {
-            int clickedCardIndex = clickedPile.getCards().indexOf(card);
-            for (int i = clickedCardIndex; i < clickedPile.numOfCards(); i++) {
-                cardsToDrag.add(clickedPile.getCards().get(i));
-            }
-        }
-
-        if (card.isFaceDown() && clickedPile.getTopCard() == card) {
-            card.flip();
-            // only flipped cards can have click events
-            addMouseEventHandlers(card);
-        }
-
     };
 
     private EventHandler<MouseEvent> stockReverseCardsHandler = e -> {
@@ -139,6 +126,7 @@ public class Game extends Pane {
                 System.out.println("yayyy");
             } else if (alert.getResult() == ButtonType.NO) {
                 System.out.println("okay bye");
+                Platform.exit();
             }
         }
     }
@@ -150,7 +138,7 @@ public class Game extends Pane {
                 fullPiles++;
             }
         }
-        return fullPiles == 1;
+        return fullPiles == 4;
     }
 
     Game() {
