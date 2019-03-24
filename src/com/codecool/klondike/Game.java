@@ -76,14 +76,15 @@ public class Game extends Pane {
         draggedCards.clear();
         draggedCards.addAll(cardsToDrag);
         cardsToDrag.clear();
+        for (Card c : draggedCards) {
+            c.getDropShadow().setRadius(20);
+            c.getDropShadow().setOffsetX(10);
+            c.getDropShadow().setOffsetY(10);
 
-        card.getDropShadow().setRadius(20);
-        card.getDropShadow().setOffsetX(10);
-        card.getDropShadow().setOffsetY(10);
-
-        card.toFront();
-        card.setTranslateX(offsetX);
-        card.setTranslateY(offsetY);
+            c.toFront();
+            c.setTranslateX(offsetX);
+            c.setTranslateY(offsetY);
+        }
     };
 
     private EventHandler<MouseEvent> onMouseReleasedHandler = e -> {
@@ -100,13 +101,15 @@ public class Game extends Pane {
         }
 
         if (pile != null) {
-            System.out.println(draggedCards.size());
             handleValidMove(card, pile);
-            alertWin();
+//            alertWin();
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
         draggedCards.clear();
+        for (Pile p : foundationPiles) {
+            System.out.println(p.getCards().size());
+        }
     };
 
     public void alertWin() {
@@ -135,12 +138,15 @@ public class Game extends Pane {
     public boolean isGameWon() {
         int fullPiles = 0;
         for (Pile pile : foundationPiles) {
-            if (pile.numOfCards() == Card.ranks.values().length) {
+//            if (pile.numOfCards() == Card.ranks.values().length) {
+//                fullPiles++;
+//            }
+            if (pile.numOfCards() > 0) {
                 fullPiles++;
             }
         }
         System.out.println(fullPiles);
-        return fullPiles == 4;
+        return fullPiles == 2;
     }
 
     Game() {
