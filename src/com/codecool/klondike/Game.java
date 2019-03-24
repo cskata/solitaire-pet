@@ -100,12 +100,13 @@ public class Game extends Pane {
         }
 
         if (pile != null) {
+            System.out.println(draggedCards.size());
             handleValidMove(card, pile);
+            alertWin();
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
         draggedCards.clear();
-        alertWin();
     };
 
     public void alertWin() {
@@ -134,10 +135,11 @@ public class Game extends Pane {
     public boolean isGameWon() {
         int fullPiles = 0;
         for (Pile pile : foundationPiles) {
-            if (pile.numOfCards() == 13) {
+            if (pile.numOfCards() == Card.ranks.values().length) {
                 fullPiles++;
             }
         }
+        System.out.println(fullPiles);
         return fullPiles == 4;
     }
 
@@ -218,16 +220,16 @@ public class Game extends Pane {
 
     private void findOriginalPile(Card card, Pile destPile, Pile.PileType currentPileType) {
         if (currentPileType.equals(Pile.PileType.DISCARD)) {
-            relocateCard(card, destPile, discardPile);
+            relocateCard(destPile, discardPile);
         } else if (currentPileType.equals(Pile.PileType.TABLEAU)) {
             int origPileNum = tableauPiles.indexOf(card.getContainingPile());
             Pile sourcePile = tableauPiles.get(origPileNum);
-            relocateCard(card, destPile, sourcePile);
+            relocateCard(destPile, sourcePile);
             autoFlipNextCard(sourcePile);
         } else if (currentPileType.equals(Pile.PileType.FOUNDATION)) {
             int origPileNum = foundationPiles.indexOf(card.getContainingPile());
             Pile sourcePile = foundationPiles.get(origPileNum);
-            relocateCard(card, destPile, sourcePile);
+            relocateCard(destPile, sourcePile);
         }
     }
 
@@ -242,12 +244,12 @@ public class Game extends Pane {
         }
     }
 
-    private void relocateCard(Card card, Pile destPile, Pile pile) {
+    private void relocateCard(Pile destPile, Pile sourcePile) {
         List<Card> cardsToAdd = FXCollections.observableArrayList();
         cardsToAdd.addAll(draggedCards);
         Collections.reverse(cardsToAdd);
-        for (Card c: cardsToAdd) {
-            pile.removeCard(c);
+        for (Card card : cardsToAdd) {
+            sourcePile.removeCard(card);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
