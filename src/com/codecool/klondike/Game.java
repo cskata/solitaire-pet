@@ -98,17 +98,35 @@ public class Game extends Pane {
         }
 
         if (pile != null) {
-            System.out.println(pile.getPileType());
             handleValidMove(card, pile);
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
         draggedCards.clear();
+        alertWin();
     };
 
+    public void alertWin() {
+        if (isGameWon()) {
+            for (Pile pile : foundationPiles) {
+                for (Card card : pile.getCards()) {
+                    card.setOnMouseClicked(null);
+                    card.setOnMousePressed(null);
+                    card.setOnMouseDragged(null);
+                    card.setOnMouseReleased(null);
+                }
+            }
+        }
+    }
+
     public boolean isGameWon() {
-        //TODO
-        return false;
+        int fullPiles = 0;
+        for (Pile pile : foundationPiles) {
+            if (pile.numOfCards() == 1) {
+                fullPiles++;
+            }
+        }
+        return fullPiles == 1;
     }
 
     Game() {
