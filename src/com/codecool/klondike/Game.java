@@ -1,12 +1,9 @@
 package com.codecool.klondike;
 
-import com.sun.xml.internal.bind.v2.model.core.ID;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -95,12 +92,13 @@ public class Game extends Pane {
         Pile pile = getValidIntersectingPile(card, tableauPiles);
 
         if (pile != null) {
-            handleValidMove(card, pile);
-            draggedCards.clear();
+            if (isMoveValid(card, pile)) {
+                handleValidMove(card, pile);
+            }
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
-            draggedCards.clear();
         }
+        draggedCards.clear();
     };
 
     public boolean isGameWon() {
@@ -167,27 +165,21 @@ public class Game extends Pane {
     }
 
     private void handleValidMove(Card card, Pile destPile) {
-        boolean isCardTheKing = card.getRank() == 13;
+        Pile.PileType currentPileType = card.getContainingPile().getPileType();
+        checkOriginalTableau(card, destPile, currentPileType);
 
-        if (destPile.numOfCards() != 0 && isMoveValid(card, destPile)) {
-            Pile.PileType currentPileType = card.getContainingPile().getPileType();
-            if (currentPileType.equals(Pile.PileType.TABLEAU)) {
-                int origPileNum = tableauPiles.indexOf(card.getContainingPile());
-                relocateCardFromTableau(card, destPile, tableauPiles.get(origPileNum));
-            } else if (card.getContainingPile().getPileType().equals(Pile.PileType.DISCARD)) {
-                relocateCardFromTableau(card, destPile, discardPile);
-            }
+    }
 
-        } else if (destPile.isEmpty() && isCardTheKing) {
+    private void checkOriginalTableau(Card card, Pile destPile, Pile.PileType currentPileType) {
+        if (currentPileType.equals(Pile.PileType.TABLEAU)) {
             int origPileNum = tableauPiles.indexOf(card.getContainingPile());
-            relocateCardFromTableau(card, destPile, tableauPiles.get(origPileNum));
-        } else {
-            draggedCards.forEach(MouseUtil::slideBack);
-            draggedCards.clear();
+            relocateCard(card, destPile, tableauPiles.get(origPileNum));
+        } else if (card.getContainingPile().getPileType().equals(Pile.PileType.DISCARD)) {
+            relocateCard(card, destPile, discardPile);
         }
     }
 
-    private void relocateCardFromTableau(Card card, Pile destPile, Pile pile) {
+    private void relocateCard(Card card, Pile destPile, Pile pile) {
         destPile.addCard(card);
         pile.removeCard(card);
         MouseUtil.slideToDest(draggedCards, destPile);
