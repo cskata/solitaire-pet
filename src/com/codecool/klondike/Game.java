@@ -92,9 +92,7 @@ public class Game extends Pane {
         Pile pile = getValidIntersectingPile(card, tableauPiles);
 
         if (pile != null) {
-            if (isMoveValid(card, pile)) {
-                handleValidMove(card, pile);
-            }
+            handleValidMove(card, pile);
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
@@ -134,16 +132,28 @@ public class Game extends Pane {
     }
 
     public boolean isMoveValid(Card card, Pile destPile) {
-        if (!destPile.isEmpty()) {
-            int clickedCardRank = card.getRank();
-            int targetPileTopCardRank = destPile.getTopCard().getRank();
-            String clickedCardColor = card.getColor();
-            String targetPileTopCardColor = destPile.getTopCard().getColor();
-            return clickedCardRank + 1 == targetPileTopCardRank && !clickedCardColor.equals(targetPileTopCardColor);
+        if (destPile.getPileType().equals(Pile.PileType.TABLEAU)) {
+            if (!destPile.isEmpty() && !destPile.getTopCard().isFaceDown()) {
+                int clickedCardRank = card.getRank();
+                int targetPileTopCardRank = destPile.getTopCard().getRank();
+                String clickedCardColor = card.getColor();
+                String targetPileTopCardColor = destPile.getTopCard().getColor();
+                return clickedCardRank + 1 == targetPileTopCardRank && !clickedCardColor.equals(targetPileTopCardColor);
+            } else {
+                return card.getRank() == 13;
+            }
+        } else if (destPile.getPileType().equals(Pile.PileType.FOUNDATION)) {
+            System.out.println("faszomat");
+            if (destPile.isEmpty() && card.getRank() == 0) {
+                return true;
+            } else if (!destPile.isEmpty() && card.getRank() + 1 == destPile.getTopCard().getRank()) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return card.getRank() == 13;
+            return false;
         }
-
     }
 
     private Pile getValidIntersectingPile(Card card, List<Pile> piles) {
@@ -167,15 +177,22 @@ public class Game extends Pane {
     private void handleValidMove(Card card, Pile destPile) {
         Pile.PileType currentPileType = card.getContainingPile().getPileType();
         checkOriginalTableau(card, destPile, currentPileType);
-
     }
 
     private void checkOriginalTableau(Card card, Pile destPile, Pile.PileType currentPileType) {
-        if (currentPileType.equals(Pile.PileType.TABLEAU)) {
-            int origPileNum = tableauPiles.indexOf(card.getContainingPile());
-            relocateCard(card, destPile, tableauPiles.get(origPileNum));
-        } else if (card.getContainingPile().getPileType().equals(Pile.PileType.DISCARD)) {
+        if (currentPileType.equals(Pile.PileType.DISCARD)) {
             relocateCard(card, destPile, discardPile);
+        } else {
+            int origPileNum = tableauPiles.indexOf(card.getContainingPile());
+            Pile sourcePile = tableauPiles.get(origPileNum);
+            relocateCard(card, destPile, sourcePile);
+
+            //automatic card flip is the top card is facing down
+            if (!sourcePile.isEmpty() && sourcePile.getTopCard().isFaceDown()) {
+                Card nextCardInOrigPile = sourcePile.getTopCard();
+                nextCardInOrigPile.flip();
+                addMouseEventHandlers(nextCardInOrigPile);
+            }
         }
     }
 
