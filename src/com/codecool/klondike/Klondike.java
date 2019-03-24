@@ -2,7 +2,6 @@ package com.codecool.klondike;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class Klondike extends Application {
@@ -18,7 +17,6 @@ public class Klondike extends Application {
     public void start(Stage primaryStage) {
         Card.loadCardImages();
         Game game = new Game();
-//        game.setTableBackground(new Image("/table/green.png"));
         game.setStyle("-fx-background-color: green");
 
         Scene scene = new Scene(game, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -26,5 +24,4 @@ public class Klondike extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
 }
