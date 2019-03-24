@@ -32,6 +32,7 @@ public class Game extends Pane {
 
     private double dragStartX, dragStartY;
     private List<Card> draggedCards = FXCollections.observableArrayList();
+    private List<Card> cardsToDrag = FXCollections.observableArrayList();
 
     private static double STOCK_GAP = 0;
     private static double FOUNDATION_GAP = 0;
@@ -49,12 +50,19 @@ public class Game extends Pane {
             System.out.println("Placed " + card + " to the waste.");
         }
 
-        // flips the top card in every tableau and checks if the clicked card is the top card
+        if (clickedPile.getPileType() == Pile.PileType.TABLEAU) {
+            int clickedCardIndex = clickedPile.getCards().indexOf(card);
+            for (int i = clickedCardIndex; i < clickedPile.numOfCards(); i++) {
+                cardsToDrag.add(clickedPile.getCards().get(i));
+            }
+        }
+
         if (card.isFaceDown() && clickedPile.getTopCard() == card) {
             card.flip();
             // only flipped cards can have click events
             addMouseEventHandlers(card);
         }
+
     };
 
     private EventHandler<MouseEvent> stockReverseCardsHandler = e -> {
@@ -74,8 +82,13 @@ public class Game extends Pane {
         double offsetX = e.getSceneX() - dragStartX;
         double offsetY = e.getSceneY() - dragStartY;
 
+        for (int i = activePile.getCards().indexOf(card); i < activePile.numOfCards(); i++) {
+            cardsToDrag.add(activePile.getCards().get(i));
+        }
+
         draggedCards.clear();
-        draggedCards.add(card);
+        draggedCards.addAll(cardsToDrag);
+        cardsToDrag.clear();
 
         card.getDropShadow().setRadius(20);
         card.getDropShadow().setOffsetX(10);
@@ -93,7 +106,7 @@ public class Game extends Pane {
         Card card = (Card) e.getSource();
         Pile pile;
 
-        if (e.getSceneY() < 300.0 && e.getSceneX() > 500) {
+        if (e.getSceneY() < 300.0 && e.getSceneX() > 600) {
             pile = getValidIntersectingPile(card, foundationPiles);
         } else {
             pile = getValidIntersectingPile(card, tableauPiles);
@@ -133,7 +146,7 @@ public class Game extends Pane {
     public boolean isGameWon() {
         int fullPiles = 0;
         for (Pile pile : foundationPiles) {
-            if (pile.numOfCards() == 1) {
+            if (pile.numOfCards() == 13) {
                 fullPiles++;
             }
         }
@@ -183,7 +196,7 @@ public class Game extends Pane {
                 return true;
             } else if (!destPile.isEmpty()
                     && card.getRank() == destPile.getTopCard().getRank() + 1
-                    && card.getSuit() == destPile.getTopCard().getSuit() ) {
+                    && card.getSuit() == destPile.getTopCard().getSuit()) {
                 return true;
             } else {
                 return false;
@@ -212,24 +225,17 @@ public class Game extends Pane {
 
     private void handleValidMove(Card card, Pile destPile) {
         Pile.PileType currentPileType = card.getContainingPile().getPileType();
-        checkOriginalTableau(card, destPile, currentPileType);
-        draggedCards.clear();
+        findOriginalPile(card, destPile, currentPileType);
     }
 
-    private void checkOriginalTableau(Card card, Pile destPile, Pile.PileType currentPileType) {
+    private void findOriginalPile(Card card, Pile destPile, Pile.PileType currentPileType) {
         if (currentPileType.equals(Pile.PileType.DISCARD)) {
             relocateCard(card, destPile, discardPile);
         } else if (currentPileType.equals(Pile.PileType.TABLEAU)) {
             int origPileNum = tableauPiles.indexOf(card.getContainingPile());
             Pile sourcePile = tableauPiles.get(origPileNum);
             relocateCard(card, destPile, sourcePile);
-
-            //automatic card flip is the top card is facing down
-            if (!sourcePile.isEmpty() && sourcePile.getTopCard().isFaceDown()) {
-                Card nextCardInOrigPile = sourcePile.getTopCard();
-                nextCardInOrigPile.flip();
-                addMouseEventHandlers(nextCardInOrigPile);
-            }
+            autoFlipNextCard(sourcePile);
         } else if (currentPileType.equals(Pile.PileType.FOUNDATION)) {
             int origPileNum = foundationPiles.indexOf(card.getContainingPile());
             Pile sourcePile = foundationPiles.get(origPileNum);
@@ -237,9 +243,24 @@ public class Game extends Pane {
         }
     }
 
+    /**
+     * Automatically flips the top card in the affected tableau pile if the card is facing down
+     */
+    private void autoFlipNextCard(Pile sourcePile) {
+        if (!sourcePile.isEmpty() && sourcePile.getTopCard().isFaceDown()) {
+            Card nextCardInOrigPile = sourcePile.getTopCard();
+            nextCardInOrigPile.flip();
+            addMouseEventHandlers(nextCardInOrigPile);
+        }
+    }
+
     private void relocateCard(Card card, Pile destPile, Pile pile) {
-        destPile.addCard(card);
-        pile.removeCard(card);
+        List<Card> cardsToAdd = FXCollections.observableArrayList();
+        cardsToAdd.addAll(draggedCards);
+        Collections.reverse(cardsToAdd);
+        for (Card c: cardsToAdd) {
+            pile.removeCard(c);
+        }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
 
@@ -285,7 +306,6 @@ public class Game extends Pane {
             for (int i = 0; i < cardsToAdd; i++) {
                 Card cardToAdd = deck.get(i);
                 tableau.addCard(cardToAdd);
-                //faceDown cards can only have click event to flip, that can do everything
                 cardToAdd.setOnMouseClicked(onMouseClickedHandler);
                 getChildren().add(cardToAdd);
                 deck.remove(cardToAdd);
