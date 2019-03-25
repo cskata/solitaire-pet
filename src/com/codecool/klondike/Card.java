@@ -121,7 +121,7 @@ public class Card extends ImageView {
     }
 
     public static void loadCardImages() {
-        cardBackImage = new Image("card_images/card_back_blue.png");
+        cardBackImage = new Image("card_images/card_back_green.png");
         String suitName = "";
         int suitIndex;
 

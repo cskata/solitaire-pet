@@ -17,10 +17,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class Game extends Pane {
 
@@ -39,6 +36,13 @@ public class Game extends Pane {
     private static double STOCK_GAP = 0;
     private static double FOUNDATION_GAP = 0;
     private static double TABLEAU_GAP = 30;
+
+    private HashMap<String, String> colors = new HashMap<String, String>() {{
+        put("#0097e6", "blue");
+        put("#7158e2", "purple");
+        put("#EA2027", "red");
+        put("green", "green");
+    }};
 
 
     private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
@@ -338,14 +342,14 @@ public class Game extends Pane {
             @Override
             public void handle(ActionEvent event) {
                 setStyle("-fx-background-color: " + color);
-                switchCardBack();
+                switchCardBack(colors.get(color));
             }
         });
         getChildren().add(button);
     }
 
-    private void switchCardBack() {
-        Image newImage = new Image("/card_images/card_back_red.png");
+    private void switchCardBack(String color) {
+        Image newImage = new Image("/card_images/card_back_" + color + ".png");
         for (Card card : deckForReference) {
             if (card.isFaceDown()) {
                 card.setImage(newImage);
