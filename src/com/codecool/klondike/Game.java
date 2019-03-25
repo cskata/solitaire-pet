@@ -16,7 +16,7 @@ public class Game extends Pane {
     private Stage currentStage = Klondike.getPrimaryStage();
 
     private List<Card> deck;
-    private List<Card> deckForReference = new ArrayList<>();
+    private List<Card> deckListForReference = new ArrayList<>();
 
     private Pile stockPile;
     private Pile discardPile;
@@ -35,7 +35,8 @@ public class Game extends Pane {
         put("Blue", "#0097e6");
         put("Green", "green");
         put("Purple", "#7158e2");
-        put("Red", "#EA2027");
+        put("Red", "#eb4d4b");
+        put("Loops", "#81ecec");
     }};
 
 
@@ -48,6 +49,21 @@ public class Game extends Pane {
             card.flip();
             card.setMouseTransparent(false);
             System.out.println("Placed " + card + " to the waste.");
+        }
+        if (e.getClickCount() == 2) {
+            for (Pile pile : foundationPiles) {
+                Card topCard = pile.getTopCard();
+                if (!pile.isEmpty()) {
+                    if (topCard.getSuit() == card.getSuit() && topCard.getRank() + 1 == card.getRank()) {
+                        card.moveToPile(pile);
+                    }
+                } else {
+                    if (card.getRank() == 1) {
+                        card.moveToPile(pile);
+                        break;
+                    }
+                }
+            }
         }
     };
 
@@ -146,7 +162,7 @@ public class Game extends Pane {
     Game() {
         createGameMenu();
         deck = Card.createNewDeck();
-        deckForReference.addAll(deck);
+        deckListForReference.addAll(deck);
         initPiles();
         dealCards();
     }
@@ -321,7 +337,7 @@ public class Game extends Pane {
 
     private void switchCardBack(String color) {
         Image newImage = new Image("/card_images/card_back_" + color + ".png");
-        for (Card card : deckForReference) {
+        for (Card card : deckListForReference) {
             if (card.isFaceDown()) {
                 card.setImage(newImage);
             }
@@ -358,7 +374,9 @@ public class Game extends Pane {
 
         for (Map.Entry<String, String> color : colors.entrySet()) {
             MenuItem item = new MenuItem(color.getKey());
-            item.setStyle("-fx-text-fill: " + color.getKey());
+            if (!color.getKey().equals("Loops")) {
+                item.setStyle("-fx-text-fill: " + color.getKey());
+            }
 
             item.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
