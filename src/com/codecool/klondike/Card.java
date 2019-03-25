@@ -17,6 +17,7 @@ public class Card extends ImageView {
     private boolean faceDown;
     private String color;
 
+
     private Image backFace;
     private Image frontFace;
     private Pile containingPile;
@@ -76,6 +77,10 @@ public class Card extends ImageView {
 
     public void setContainingPile(Pile containingPile) {
         this.containingPile = containingPile;
+    }
+
+    public void setBackFace(Image backFace) {
+        this.backFace = backFace;
     }
 
     public void moveToPile(Pile destPile) {

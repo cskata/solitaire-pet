@@ -16,6 +16,10 @@ public class Klondike extends Application {
     @Override
     public void start(Stage primaryStage) {
         Card.loadCardImages();
+        startGame(primaryStage);
+    }
+
+    public static void startGame(Stage primaryStage) {
         Game game = new Game();
         game.setStyle("-fx-background-color: green");
 

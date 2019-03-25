@@ -25,6 +25,7 @@ import java.util.List;
 public class Game extends Pane {
 
     private List<Card> deck = new ArrayList<>();
+    private List<Card> deckForReference = new ArrayList<>();
 
     private Pile stockPile;
     private Pile discardPile;
@@ -147,6 +148,7 @@ public class Game extends Pane {
 
     Game() {
         deck = Card.createNewDeck();
+        deckForReference.addAll(deck);
         setBackgroundButtons();
         initPiles();
         dealCards();
@@ -254,10 +256,6 @@ public class Game extends Pane {
             sourcePile.removeCard(card);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
-//        for (Card card : cardsToAdd) {
-//            destPile.simpleAdd(card);
-//        }
-//        System.out.println(destPile.getCards().size());
     }
 
 
@@ -325,13 +323,13 @@ public class Game extends Pane {
     }
 
     public void setBackgroundButtons() {
-        addBackgroundColorSwitcher("Blue", 60, "#0097e6");
-        addBackgroundColorSwitcher("Purple", 140, "#7158e2");
-        addBackgroundColorSwitcher("Red", 220, "#EA2027");
-        addBackgroundColorSwitcher("Green", 300, "green");
+        switchTheme("Blue", 60, "#0097e6");
+        switchTheme("Purple", 140, "#7158e2");
+        switchTheme("Red", 220, "#EA2027");
+        switchTheme("Green", 300, "green");
     }
 
-    public void addBackgroundColorSwitcher(String text, int layoutX, String color) {
+    public void switchTheme(String text, int layoutX, String color) {
         Button button = new Button(text);
         button.setLayoutX(layoutX);
         button.setLayoutY(640);
@@ -340,8 +338,19 @@ public class Game extends Pane {
             @Override
             public void handle(ActionEvent event) {
                 setStyle("-fx-background-color: " + color);
+                switchCardBack();
             }
         });
         getChildren().add(button);
+    }
+
+    private void switchCardBack() {
+        Image newImage = new Image("/card_images/card_back_red.png");
+        for (Card card : deckForReference) {
+            if (card.isFaceDown()) {
+                card.setImage(newImage);
+            }
+            card.setBackFace(newImage);
+        }
     }
 }
