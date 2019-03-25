@@ -5,9 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
@@ -151,9 +149,9 @@ public class Game extends Pane {
     }
 
     Game() {
+        createGameMenu();
         deck = Card.createNewDeck();
         deckForReference.addAll(deck);
-        setBackgroundButtons();
         initPiles();
         dealCards();
     }
@@ -267,21 +265,21 @@ public class Game extends Pane {
         stockPile = new Pile(Pile.PileType.STOCK, "Stock", STOCK_GAP);
         stockPile.setBlurredBackground();
         stockPile.setLayoutX(60);
-        stockPile.setLayoutY(20);
+        stockPile.setLayoutY(40);
         stockPile.setOnMouseClicked(stockReverseCardsHandler);
         getChildren().add(stockPile);
 
         discardPile = new Pile(Pile.PileType.DISCARD, "Discard", STOCK_GAP);
         discardPile.setBlurredBackground();
         discardPile.setLayoutX(250);
-        discardPile.setLayoutY(20);
+        discardPile.setLayoutY(40);
         getChildren().add(discardPile);
 
         for (int i = 0; i < 4; i++) {
             Pile foundationPile = new Pile(Pile.PileType.FOUNDATION, "Foundation " + i, FOUNDATION_GAP);
             foundationPile.setBlurredBackground();
             foundationPile.setLayoutX(600 + i * 180);
-            foundationPile.setLayoutY(20);
+            foundationPile.setLayoutY(40);
             foundationPiles.add(foundationPile);
             getChildren().add(foundationPile);
         }
@@ -326,28 +324,6 @@ public class Game extends Pane {
                 BackgroundPosition.CENTER, BackgroundSize.DEFAULT)));
     }
 
-    public void setBackgroundButtons() {
-        switchTheme("Blue", 60, "#0097e6");
-        switchTheme("Purple", 140, "#7158e2");
-        switchTheme("Red", 220, "#EA2027");
-        switchTheme("Green", 300, "green");
-    }
-
-    public void switchTheme(String text, int layoutX, String color) {
-        Button button = new Button(text);
-        button.setLayoutX(layoutX);
-        button.setLayoutY(640);
-        button.setStyle("-fx-pref-height: 30.0; -fx-pref-width: 70.0; -fx-font-weight: bold");
-        button.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                setStyle("-fx-background-color: " + color);
-                switchCardBack(colors.get(color));
-            }
-        });
-        getChildren().add(button);
-    }
-
     private void switchCardBack(String color) {
         Image newImage = new Image("/card_images/card_back_" + color + ".png");
         for (Card card : deckForReference) {
@@ -356,5 +332,84 @@ public class Game extends Pane {
             }
             card.setBackFace(newImage);
         }
+    }
+
+    private void createGameMenu() {
+        Menu menuFile = new Menu("File");
+        menuFile.setStyle("-fx-font-weight: bold");
+
+        MenuItem menuNewGame = new MenuItem("New Game");
+        MenuItem menuExit = new MenuItem("Exit");
+
+        menuExit.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Platform.exit();
+            }
+        });
+
+        menuFile.getItems().add(menuNewGame);
+        menuFile.getItems().add(menuExit);
+
+        Menu menuTheme = new Menu("Choose a theme");
+        menuTheme.setStyle("-fx-font-weight: bold");
+
+        MenuItem menuBlue = new MenuItem("Blue");
+        menuBlue.setStyle("-fx-text-fill: #0097e6");
+
+        menuBlue.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                setStyle("-fx-background-color: #0097e6");
+                switchCardBack(colors.get("#0097e6"));
+            }
+        });
+
+        MenuItem menuGreen = new MenuItem("Green");
+        menuGreen.setStyle("-fx-text-fill: green");
+
+        menuGreen.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                setStyle("-fx-background-color: green");
+                switchCardBack(colors.get("green"));
+            }
+        });
+
+        MenuItem menuPurple = new MenuItem("Purple");
+        menuPurple.setStyle("-fx-text-fill: #7158e2");
+
+        menuPurple.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                setStyle("-fx-background-color: #7158e2");
+                switchCardBack(colors.get("#7158e2"));
+            }
+        });
+
+        MenuItem menuRed = new MenuItem("Red");
+        menuRed.setStyle("-fx-text-fill: #EA2027");
+
+        menuRed.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                setStyle("-fx-background-color: #EA2027");
+                switchCardBack(colors.get("#EA2027"));
+            }
+        });
+
+
+        menuTheme.getItems().add(menuBlue);
+        menuTheme.getItems().add(menuGreen);
+        menuTheme.getItems().add(menuPurple);
+        menuTheme.getItems().add(menuRed);
+
+        MenuBar menuBar = new MenuBar();
+        menuBar.getMenus().add(menuFile);
+        menuBar.getMenus().add(menuTheme);
+
+        menuBar.setStyle("-fx-pref-width: 1400");
+
+        getChildren().add(menuBar);
     }
 }
