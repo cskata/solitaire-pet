@@ -31,11 +31,11 @@ public class Game extends Pane {
     private static double FOUNDATION_GAP = 0;
     private static double TABLEAU_GAP = 30;
 
-    private HashMap<String, String> colors = new HashMap<String, String>() {{
-        put("#0097e6", "blue");
-        put("#7158e2", "purple");
-        put("#EA2027", "red");
-        put("green", "green");
+    private Map<String, String> colors = new TreeMap<String, String>() {{
+        put("Blue", "#0097e6");
+        put("Green", "green");
+        put("Purple", "#7158e2");
+        put("Red", "#EA2027");
     }};
 
 
@@ -356,55 +356,20 @@ public class Game extends Pane {
         Menu menuTheme = new Menu("Choose a theme");
         menuTheme.setStyle("-fx-font-weight: bold");
 
-        MenuItem menuBlue = new MenuItem("Blue");
-        menuBlue.setStyle("-fx-text-fill: #0097e6");
+        for (Map.Entry<String, String> color : colors.entrySet()) {
+            MenuItem item = new MenuItem(color.getKey());
+            item.setStyle("-fx-text-fill: " + color.getKey());
 
-        menuBlue.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                setStyle("-fx-background-color: #0097e6");
-                switchCardBack(colors.get("#0097e6"));
-            }
-        });
+            item.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    setStyle("-fx-background-color: " + color.getValue());
+                    switchCardBack(color.getKey().toLowerCase());
+                }
+            });
 
-        MenuItem menuGreen = new MenuItem("Green");
-        menuGreen.setStyle("-fx-text-fill: green");
-
-        menuGreen.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                setStyle("-fx-background-color: green");
-                switchCardBack(colors.get("green"));
-            }
-        });
-
-        MenuItem menuPurple = new MenuItem("Purple");
-        menuPurple.setStyle("-fx-text-fill: #7158e2");
-
-        menuPurple.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                setStyle("-fx-background-color: #7158e2");
-                switchCardBack(colors.get("#7158e2"));
-            }
-        });
-
-        MenuItem menuRed = new MenuItem("Red");
-        menuRed.setStyle("-fx-text-fill: #EA2027");
-
-        menuRed.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                setStyle("-fx-background-color: #EA2027");
-                switchCardBack(colors.get("#EA2027"));
-            }
-        });
-
-
-        menuTheme.getItems().add(menuBlue);
-        menuTheme.getItems().add(menuGreen);
-        menuTheme.getItems().add(menuPurple);
-        menuTheme.getItems().add(menuRed);
+            menuTheme.getItems().add(item);
+        }
 
         MenuBar menuBar = new MenuBar();
         menuBar.getMenus().add(menuFile);
