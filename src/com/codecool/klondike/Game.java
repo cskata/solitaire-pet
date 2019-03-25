@@ -48,24 +48,35 @@ public class Game extends Pane {
             card.moveToPile(discardPile);
             card.flip();
             card.setMouseTransparent(false);
-            System.out.println("Placed " + card + " to the waste.");
         }
         if (e.getClickCount() == 2) {
-            for (Pile pile : foundationPiles) {
-                Card topCard = pile.getTopCard();
-                if (!pile.isEmpty()) {
-                    if (topCard.getSuit() == card.getSuit() && topCard.getRank() + 1 == card.getRank()) {
-                        card.moveToPile(pile);
-                    }
-                } else {
-                    if (card.getRank() == 1) {
-                        card.moveToPile(pile);
-                        break;
-                    }
+            handleDoubleClick(card);
+        }
+    };
+
+    private void handleDoubleClick(Card card) {
+        for (Pile pile : foundationPiles) {
+            Card topCard = pile.getTopCard();
+            if (!pile.isEmpty()) {
+                if (Card.isSameSuit(card, topCard) && topCard.getRank() + 1 == card.getRank()) {
+                    removeCardAndFlipNext(card, pile);
+                }
+            } else {
+                if (card.getRank() == 1) {
+                    removeCardAndFlipNext(card, pile);
+                    break;
                 }
             }
         }
-    };
+    }
+
+    private void removeCardAndFlipNext(Card card, Pile pile) {
+        Pile clickedPile = card.getContainingPile();
+        card.moveToPile(pile);
+        if (clickedPile.getPileType().equals(Pile.PileType.TABLEAU)) {
+            clickedPile.getTopCard().flip();
+        }
+    }
 
     private EventHandler<MouseEvent> stockReverseCardsHandler = e -> {
         refillStockFromDiscard();
@@ -121,27 +132,35 @@ public class Game extends Pane {
             draggedCards.forEach(MouseUtil::slideBack);
         }
         draggedCards.clear();
-        alertWin();
+        endGame();
     };
 
-    public void alertWin() {
+    public void endGame() {
         if (isGameWon()) {
-            for (Pile pile : foundationPiles) {
-                for (Card card : pile.getCards()) {
-                    card.setOnMouseClicked(null);
-                    card.setOnMousePressed(null);
-                    card.setOnMouseDragged(null);
-                    card.setOnMouseReleased(null);
-                }
-            }
-            Alert alert = new Alert(Alert.AlertType.NONE, "Do you want to play again?",
-                    ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-            alert.showAndWait();
-            if (alert.getResult() == ButtonType.YES) {
-                Scene scene = Klondike.startGame();
-                currentStage.setScene(scene);
-            } else if (alert.getResult() == ButtonType.NO) {
-                currentStage.close();
+            removeMouseEventHandlers();
+            alertWin();
+        }
+    }
+
+    private void alertWin() {
+        Alert alert = new Alert(Alert.AlertType.NONE, "Do you want to play again?",
+                ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+        alert.showAndWait();
+        if (alert.getResult() == ButtonType.YES) {
+            Scene scene = Klondike.startGame();
+            currentStage.setScene(scene);
+        } else if (alert.getResult() == ButtonType.NO) {
+            currentStage.close();
+        }
+    }
+
+    private void removeMouseEventHandlers() {
+        for (Pile pile : foundationPiles) {
+            for (Card card : pile.getCards()) {
+                card.setOnMouseClicked(null);
+                card.setOnMousePressed(null);
+                card.setOnMouseDragged(null);
+                card.setOnMouseReleased(null);
             }
         }
     }
@@ -163,6 +182,8 @@ public class Game extends Pane {
         createGameMenu();
         deck = Card.createNewDeck();
         deckListForReference.addAll(deck);
+        Collections.shuffle(deck);
+
         initPiles();
         dealCards();
     }
@@ -192,9 +213,7 @@ public class Game extends Pane {
             if (!destPile.isEmpty() && !destPile.getTopCard().isFaceDown()) {
                 int clickedCardRank = card.getRank();
                 int targetPileTopCardRank = destPile.getTopCard().getRank();
-                String clickedCardColor = card.getColor();
-                String targetPileTopCardColor = destPile.getTopCard().getColor();
-                return clickedCardRank + 1 == targetPileTopCardRank && !clickedCardColor.equals(targetPileTopCardColor);
+                return clickedCardRank + 1 == targetPileTopCardRank && !Card.isOppositeColor(card, destPile.getTopCard());
             } else {
                 return card.getRank() == 13;
             }
@@ -203,7 +222,7 @@ public class Game extends Pane {
                 return true;
             } else if (!destPile.isEmpty()
                     && card.getRank() == destPile.getTopCard().getRank() + 1
-                    && card.getSuit() == destPile.getTopCard().getSuit()) {
+                    && Card.isSameSuit(card, destPile.getTopCard())) {
                 return true;
             } else {
                 return false;
