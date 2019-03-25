@@ -1,25 +1,21 @@
 package com.codecool.klondike;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.Pane;
-
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import java.util.*;
 
 public class Game extends Pane {
+    private Stage currentStage = Klondike.getPrimaryStage();
 
-    private List<Card> deck = new ArrayList<>();
+    private List<Card> deck;
     private List<Card> deckForReference = new ArrayList<>();
 
     private Pile stockPile;
@@ -125,12 +121,11 @@ public class Game extends Pane {
             Alert alert = new Alert(Alert.AlertType.NONE, "Do you want to play again?",
                     ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
             alert.showAndWait();
-
             if (alert.getResult() == ButtonType.YES) {
-                System.out.println("yayyy");
+                Scene scene = Klondike.startGame();
+                currentStage.setScene(scene);
             } else if (alert.getResult() == ButtonType.NO) {
-                System.out.println("okay bye");
-                Platform.exit();
+                currentStage.close();
             }
         }
     }
@@ -339,12 +334,19 @@ public class Game extends Pane {
         menuFile.setStyle("-fx-font-weight: bold");
 
         MenuItem menuNewGame = new MenuItem("New Game");
-        MenuItem menuExit = new MenuItem("Exit");
+        menuNewGame.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Scene scene = Klondike.startGame();
+                currentStage.setScene(scene);
+            }
+        });
 
+        MenuItem menuExit = new MenuItem("Exit");
         menuExit.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                Platform.exit();
+                currentStage.close();
             }
         });
 

@@ -5,9 +5,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Klondike extends Application {
-
+    private static Stage primaryStage;
     private static final double WINDOW_WIDTH = 1400;
     private static final double WINDOW_HEIGHT = 900;
+
 
     public static void main(String[] args) {
         launch(args);
@@ -16,16 +17,26 @@ public class Klondike extends Application {
     @Override
     public void start(Stage primaryStage) {
         Card.loadCardImages();
-        startGame(primaryStage);
-    }
+        setPrimaryStage(primaryStage);
+        Scene scene = startGame();
 
-    public static void startGame(Stage primaryStage) {
-        Game game = new Game();
-        game.setStyle("-fx-background-color: green");
-
-        Scene scene = new Scene(game, WINDOW_WIDTH, WINDOW_HEIGHT);
         primaryStage.setTitle("Klondike Solitaire");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+    public static Scene startGame() {
+        Game game = new Game();
+        game.setStyle("-fx-background-color: green");
+        return new Scene(game, WINDOW_WIDTH, WINDOW_HEIGHT);
+    }
+
+    public static Stage getPrimaryStage() {
+        return primaryStage;
+    }
+
+    private static void setPrimaryStage(Stage stage) {
+        Klondike.primaryStage = stage;
+    }
+
 }
