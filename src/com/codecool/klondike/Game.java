@@ -73,8 +73,12 @@ public class Game extends Pane {
     private void removeCardAndFlipNext(Card card, Pile pile) {
         Pile clickedPile = card.getContainingPile();
         card.moveToPile(pile);
-        if (clickedPile.getPileType().equals(Pile.PileType.TABLEAU)) {
+        endGame();
+        if (!clickedPile.isEmpty()
+                && clickedPile.getPileType().equals(Pile.PileType.TABLEAU)
+                && clickedPile.getTopCard().isFaceDown()) {
             clickedPile.getTopCard().flip();
+            addMouseEventHandlers(clickedPile.getTopCard());
         }
     }
 
@@ -102,14 +106,15 @@ public class Game extends Pane {
         draggedCards.clear();
         draggedCards.addAll(cardsToDrag);
         cardsToDrag.clear();
-        for (Card c : draggedCards) {
-            c.getDropShadow().setRadius(20);
-            c.getDropShadow().setOffsetX(10);
-            c.getDropShadow().setOffsetY(10);
 
-            c.toFront();
-            c.setTranslateX(offsetX);
-            c.setTranslateY(offsetY);
+        for (Card draggedCard : draggedCards) {
+            draggedCard.getDropShadow().setRadius(20);
+            draggedCard.getDropShadow().setOffsetX(10);
+            draggedCard.getDropShadow().setOffsetY(10);
+
+            draggedCard.toFront();
+            draggedCard.setTranslateX(offsetX);
+            draggedCard.setTranslateY(offsetY);
         }
     };
 
