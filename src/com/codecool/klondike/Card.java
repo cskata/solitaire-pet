@@ -44,7 +44,7 @@ public class Card extends ImageView {
         return this.movements.get(this.movements.size() - 1);
     }
 
-    public void addPreviousPile(Pile pile) {
+    public void addMovement(Pile pile) {
         this.movements.add(pile);
     }
 

@@ -54,7 +54,7 @@ public class Game extends Pane {
             if (clickedPile.getPileType() == Pile.PileType.STOCK) {
                 movesDuringGame.add("Card");
                 movedCardsDuringGame.add(card);
-                card.addPreviousPile(clickedPile);
+                card.addMovement(clickedPile);
 
                 card.moveToPile(discardPile);
                 card.flip();
@@ -72,15 +72,11 @@ public class Game extends Pane {
             Card topCard = destPile.getTopCard();
             if (!destPile.isEmpty()) {
                 if (Card.isSameSuit(card, topCard) && topCard.getRank() + 1 == card.getRank()) {
-                    draggedCards.add(card);
                     removeCardAndFlipNext(card, destPile);
-                    draggedCards.clear();
                 }
             } else {
                 if (card.getRank() == 1) {
-                    draggedCards.add(card);
                     removeCardAndFlipNext(card, destPile);
-                    draggedCards.clear();
                     break;
                 }
             }
@@ -88,9 +84,13 @@ public class Game extends Pane {
     }
 
     private void removeCardAndFlipNext(Card card, Pile destPile) {
+        draggedCards.add(card);
         Pile clickedPile = card.getContainingPile();
+        movesDuringGame.add("Card");
+        movedCardsDuringGame.add(card);
         doCardRelocation(destPile, clickedPile, card);
         MouseUtil.slideToDest(draggedCards, destPile);
+
         if (!clickedPile.isEmpty()
                 && clickedPile.getPileType().equals(Pile.PileType.TABLEAU)
                 && clickedPile.getTopCard().isFaceDown()) {
@@ -98,6 +98,7 @@ public class Game extends Pane {
             addMouseEventHandlers(clickedPile.getTopCard());
         }
         checkEndGame();
+        draggedCards.clear();
     }
 
     private EventHandler<MouseEvent> stockReverseCardsHandler = e -> {
@@ -154,8 +155,8 @@ public class Game extends Pane {
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
-        System.out.println("New moves to undo: " + movesDuringGame);
-        System.out.println("Moved cards: " + movedCardsDuringGame);
+//        System.out.println("New moves to undo: " + movesDuringGame);
+//        System.out.println("Moved cards: " + movedCardsDuringGame);
         draggedCards.clear();
         checkEndGame();
     };
@@ -242,7 +243,7 @@ public class Game extends Pane {
             for (Card card : discarded) {
                 card.flip();
                 stockPile.addCard(card);
-                card.addPreviousPile(discardPile);
+                card.addMovement(discardPile);
             }
             discardPile.clear();
         }
@@ -330,17 +331,13 @@ public class Game extends Pane {
         }
         for (Card card : cardsToAdd) {
             doCardRelocation(destPile, sourcePile, card);
-            card.addPreviousPile(sourcePile);
 //            movesDuringGame.remove(movesDuringGame.size() - 1);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
 
     private void doCardRelocation(Pile destPile, Pile sourcePile, Card card) {
-        movesDuringGame.add("Card");
-        movedCardsDuringGame.add(card);
-
-        card.addPreviousPile(sourcePile);
+        card.addMovement(sourcePile);
         card.setContainingPile(destPile);
         sourcePile.removeCard(card);
     }
@@ -499,11 +496,6 @@ public class Game extends Pane {
                 Card lastMovedCard = movedCardsDuringGame.get(movedCardsDuringGame.size() - 1);
                 Pile currentPile = lastMovedCard.getContainingPile();
                 Pile previousPile = lastMovedCard.getLastMovement();
-
-//                System.out.println("Card: " + lastMovedCard + " From: " + currentPile.getName() + " To: " + previousPile.getName());
-
-//                lastMovedCard.moveToPile(previousPile);
-//                MouseUtil.autoSlideCard(lastMovedCard, previousPile);
 
                 lastMovedCard.undoLastMovement();
                 if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
