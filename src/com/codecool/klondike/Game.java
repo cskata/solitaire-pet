@@ -44,35 +44,43 @@ public class Game extends Pane {
         Card card = (Card) e.getSource();
         Pile clickedPile = card.getContainingPile();
 
-        if (clickedPile.getPileType() == Pile.PileType.STOCK) {
-            card.moveToPile(discardPile);
-            card.flip();
-            card.setMouseTransparent(false);
+        if (e.getClickCount() == 1) {
+            if (clickedPile.getPileType() == Pile.PileType.STOCK) {
+                card.moveToPile(discardPile);
+                card.flip();
+                card.setMouseTransparent(false);
+            }
         }
+
         if (e.getClickCount() == 2) {
             handleDoubleClick(card);
         }
     };
 
     private void handleDoubleClick(Card card) {
-        for (Pile pile : foundationPiles) {
-            Card topCard = pile.getTopCard();
-            if (!pile.isEmpty()) {
+        for (Pile destPile : foundationPiles) {
+            Card topCard = destPile.getTopCard();
+            if (!destPile.isEmpty()) {
                 if (Card.isSameSuit(card, topCard) && topCard.getRank() + 1 == card.getRank()) {
-                    removeCardAndFlipNext(card, pile);
+                    draggedCards.add(card);
+                    removeCardAndFlipNext(card, destPile);
+                    draggedCards.clear();
                 }
             } else {
                 if (card.getRank() == 1) {
-                    removeCardAndFlipNext(card, pile);
+                    draggedCards.add(card);
+                    removeCardAndFlipNext(card, destPile);
+                    draggedCards.clear();
                     break;
                 }
             }
         }
     }
 
-    private void removeCardAndFlipNext(Card card, Pile pile) {
+    private void removeCardAndFlipNext(Card card, Pile destPile) {
         Pile clickedPile = card.getContainingPile();
-        card.moveToPile(pile);
+        MouseUtil.slideToDest(draggedCards, destPile);
+        clickedPile.removeCard(card);
         endGame();
         if (!clickedPile.isEmpty()
                 && clickedPile.getPileType().equals(Pile.PileType.TABLEAU)
@@ -291,6 +299,7 @@ public class Game extends Pane {
         Collections.reverse(cardsToAdd);
         for (Card card : cardsToAdd) {
             sourcePile.removeCard(card);
+            card.setContainingPile(destPile);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
