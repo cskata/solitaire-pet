@@ -80,8 +80,9 @@ public class Game extends Pane {
     private void removeCardAndFlipNext(Card card, Pile destPile) {
         Pile clickedPile = card.getContainingPile();
         MouseUtil.slideToDest(draggedCards, destPile);
+        card.setContainingPile(destPile);
         clickedPile.removeCard(card);
-        endGame();
+        checkEndGame();
         if (!clickedPile.isEmpty()
                 && clickedPile.getPileType().equals(Pile.PileType.TABLEAU)
                 && clickedPile.getTopCard().isFaceDown()) {
@@ -145,10 +146,10 @@ public class Game extends Pane {
             draggedCards.forEach(MouseUtil::slideBack);
         }
         draggedCards.clear();
-        endGame();
+        checkEndGame();
     };
 
-    public void endGame() {
+    public void checkEndGame() {
         if (isGameWon()) {
             removeMouseEventHandlers();
             alertWin();
@@ -179,16 +180,14 @@ public class Game extends Pane {
     }
 
     public boolean isGameWon() {
-        int fullPiles = 0;
-        int almostFullPile = 0;
-        for (int i = 0; i < foundationPiles.size(); i++) {
-            if (foundationPiles.get(i).numOfCards() == Card.ranks.values().length) {
-                fullPiles++;
-            } else if (foundationPiles.get(i).numOfCards() == 12) {
-                almostFullPile++;
+        int cardsInFoundation = 0;
+
+        for (Card card: deckListForReference) {
+            if (card.getContainingPile().getPileType().equals(Pile.PileType.FOUNDATION)) {
+                cardsInFoundation++;
             }
         }
-        return fullPiles == 3 && almostFullPile == 1;
+        return cardsInFoundation == 52;
     }
 
     Game() {
@@ -298,8 +297,8 @@ public class Game extends Pane {
         cardsToAdd.addAll(draggedCards);
         Collections.reverse(cardsToAdd);
         for (Card card : cardsToAdd) {
-            sourcePile.removeCard(card);
             card.setContainingPile(destPile);
+            sourcePile.removeCard(card);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
