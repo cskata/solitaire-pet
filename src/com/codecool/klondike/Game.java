@@ -19,9 +19,13 @@ public class Game extends Pane {
     private List<Card> deck;
     private List<Card> deckListForReference = new ArrayList<>();
     private List<Card> remainingCardsInTableau = new ArrayList<>();
-    private static List<Card> movesDuringGame = new ArrayList<>();
+    private static Map<String, Integer> moveCounter = new HashMap<String, Integer>() {{
+        put("Card", 0);
+        put("List", 0);
+    }};
+    private static List<String> movesDuringGame = new ArrayList<>();
     private static List<Card> movedCardsDuringGame = new ArrayList<>();
-    private static List<Card> movedCardListsDuringGame = new ArrayList<>();
+    private static List<List<Card>> movedCardListsDuringGame = new ArrayList<>();
 
     private Pile stockPile;
     private Pile discardPile;
@@ -51,8 +55,10 @@ public class Game extends Pane {
 
         if (e.getClickCount() == 1) {
             if (clickedPile.getPileType() == Pile.PileType.STOCK) {
+                moveCounter.put("Card", moveCounter.get("Card") + 1);
+                movesDuringGame.add("Card");
                 movedCardsDuringGame.add(card);
-                card.addMovement(clickedPile);
+                card.addPreviousPile(clickedPile);
                 card.moveToPile(discardPile);
                 card.flip();
                 card.setMouseTransparent(false);
@@ -86,15 +92,15 @@ public class Game extends Pane {
 
     private void removeCardAndFlipNext(Card card, Pile destPile) {
         Pile clickedPile = card.getContainingPile();
-        MouseUtil.slideToDest(draggedCards, destPile);
         doCardRelocation(destPile, clickedPile, card);
-        checkEndGame();
+        MouseUtil.slideToDest(draggedCards, destPile);
         if (!clickedPile.isEmpty()
                 && clickedPile.getPileType().equals(Pile.PileType.TABLEAU)
                 && clickedPile.getTopCard().isFaceDown()) {
             clickedPile.getTopCard().flip();
             addMouseEventHandlers(clickedPile.getTopCard());
         }
+        checkEndGame();
     }
 
     private EventHandler<MouseEvent> stockReverseCardsHandler = e -> {
@@ -325,8 +331,11 @@ public class Game extends Pane {
     }
 
     private void doCardRelocation(Pile destPile, Pile sourcePile, Card card) {
+        moveCounter.put("Card", moveCounter.get("Card") + 1);
+        movesDuringGame.add("Card");
         movedCardsDuringGame.add(card);
-        card.addMovement(sourcePile);
+
+        card.addPreviousPile(sourcePile);
         card.setContainingPile(destPile);
         sourcePile.removeCard(card);
     }
@@ -476,29 +485,37 @@ public class Game extends Pane {
     }
 
     private void handleUndo() {
-        if (movedCardsDuringGame.size() > 0) {
-            Card lastMovedCard = movedCardsDuringGame.get(movedCardsDuringGame.size() - 1);
-            Pile currentPile = lastMovedCard.getContainingPile();
-            Pile previousPile = lastMovedCard.getLastMovement();
+        if (movesDuringGame.size() > 0) {
 
-            System.out.println("Card: " + lastMovedCard + " From: " + currentPile.getName() + " To: " + previousPile.getName());
+            String lastMovement = movesDuringGame.get(movesDuringGame.size() - 1);
 
-            lastMovedCard.undoLastCardMovement();
-            currentPile.removeCard(lastMovedCard);
-            MouseUtil.autoSlideCard(lastMovedCard, previousPile);
+            if (lastMovement.equals("Card")) {
+                Card lastMovedCard = movedCardsDuringGame.get(movedCardsDuringGame.size() - 1);
+                Pile currentPile = lastMovedCard.getContainingPile();
+                Pile previousPile = lastMovedCard.getLastMovement();
 
-            if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
-                lastMovedCard.flip();
-            } else if (!previousPile.getTopCard().isFaceDown()
-                    && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
-                    && !previousPile.isEmpty()
-                    && (!previousPile.getPileType().equals(Pile.PileType.DISCARD)
-                    || !previousPile.getPileType().equals(Pile.PileType.FOUNDATION))) {
-                previousPile.getTopCard().flip();
+                System.out.println("Card: " + lastMovedCard + " From: " + currentPile.getName() + " To: " + previousPile.getName());
+
+                lastMovedCard.undoLastCardMovement();
+                currentPile.removeCard(lastMovedCard);
+                MouseUtil.autoSlideCard(lastMovedCard, previousPile);
+
+                if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
+                    lastMovedCard.flip();
+                } else if (!previousPile.getTopCard().isFaceDown()
+                        && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
+                        && !previousPile.isEmpty()) {
+                    previousPile.getTopCard().flip();
+                }
+
+                previousPile.addCard(lastMovedCard);
+                movedCardsDuringGame.remove(movedCardsDuringGame.size() - 1);
+                movesDuringGame.remove(movesDuringGame.size() - 1);
+            } else {
+
             }
 
-            previousPile.addCard(lastMovedCard);
-            movedCardsDuringGame.remove(movedCardsDuringGame.size() - 1);
+
         }
     }
 }

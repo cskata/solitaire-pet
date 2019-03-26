@@ -44,9 +44,8 @@ public class Card extends ImageView {
         return this.movements.get(this.movements.size() - 1);
     }
 
-    public void addMovement(Pile pile) {
+    public void addPreviousPile(Pile pile) {
         this.movements.add(pile);
-        System.out.println(this.movements.toString());
     }
 
     public void undoLastCardMovement() {
