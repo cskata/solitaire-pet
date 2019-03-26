@@ -17,7 +17,7 @@ public class Game extends Pane {
 
     private List<Card> deck;
     private List<Card> deckListForReference = new ArrayList<>();
-    private List<Card> remainingCardsInTableu = new ArrayList<>();
+    private List<Card> remainingCardsInTableau = new ArrayList<>();
 
     private Pile stockPile;
     private Pile discardPile;
@@ -40,6 +40,16 @@ public class Game extends Pane {
         put("Loops", "#81ecec");
     }};
 
+
+    Game() {
+        createGameMenu();
+        deck = Card.createNewDeck();
+        deckListForReference.addAll(deck);
+        Collections.shuffle(deck);
+
+        initPiles();
+        dealCards();
+    }
 
     private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
         Card card = (Card) e.getSource();
@@ -84,6 +94,7 @@ public class Game extends Pane {
         card.setContainingPile(destPile);
         clickedPile.removeCard(card);
         checkEndGame();
+
         if (!clickedPile.isEmpty()
                 && clickedPile.getPileType().equals(Pile.PileType.TABLEAU)
                 && clickedPile.getTopCard().isFaceDown()) {
@@ -153,18 +164,20 @@ public class Game extends Pane {
     public void checkEndGame() {
         if (isGameWon()) {
             for (Card card : deckListForReference) {
-                if (card.getContainingPile().getPileType().equals(Pile.PileType.TABLEAU)) {
+                boolean isContainerPileTableau = card.getContainingPile().getPileType().equals(Pile.PileType.TABLEAU);
+                if (isContainerPileTableau) {
                     for (Pile pile : foundationPiles) {
                         if (Card.isSameSuit(card, pile.getTopCard())) {
-                            card.setFinalDestPile(foundationPiles.get(foundationPiles.indexOf(pile)));
+                            Pile finalFoundationPile = foundationPiles.get(foundationPiles.indexOf(pile));
+                            card.setFinalDestPile(finalFoundationPile);
                         }
                     }
-                    remainingCardsInTableu.add(card);
+                    remainingCardsInTableau.add(card);
                 }
             }
 
-            for (Card card : remainingCardsInTableu) {
-                MouseUtil.autoSlideCardWhenGameIsWon(card, card.getFinalDestPile());
+            for (Card card : remainingCardsInTableau) {
+                MouseUtil.autoSlideCard(card, card.getFinalDestPile());
             }
 
             removeMouseEventHandlers();
@@ -197,24 +210,12 @@ public class Game extends Pane {
 
     public boolean isGameWon() {
         int cardsInFoundation = 0;
-
         for (Card card: deckListForReference) {
             if (!card.isFaceDown() && !card.getContainingPile().getPileType().equals(Pile.PileType.DISCARD)) {
                 cardsInFoundation++;
             }
         }
-
         return cardsInFoundation == 52;
-    }
-
-    Game() {
-        createGameMenu();
-        deck = Card.createNewDeck();
-        deckListForReference.addAll(deck);
-        Collections.shuffle(deck);
-
-        initPiles();
-        dealCards();
     }
 
     public void addMouseEventHandlers(Card card) {
@@ -233,7 +234,6 @@ public class Game extends Pane {
                 stockPile.addCard(card);
             }
             discardPile.clear();
-            System.out.println("Stock refilled from discard pile.");
         }
     }
 
@@ -280,10 +280,7 @@ public class Game extends Pane {
 
     private void handleValidMove(Card card, Pile destPile) {
         Pile.PileType currentPileType = card.getContainingPile().getPileType();
-        findOriginalPile(card, destPile, currentPileType);
-    }
 
-    private void findOriginalPile(Card card, Pile destPile, Pile.PileType currentPileType) {
         if (currentPileType.equals(Pile.PileType.DISCARD)) {
             relocateCard(destPile, discardPile);
         } else if (currentPileType.equals(Pile.PileType.TABLEAU)) {
@@ -376,12 +373,6 @@ public class Game extends Pane {
             addMouseEventHandlers(card);
             getChildren().add(card);
         });
-    }
-
-    public void setTableBackground(Image tableBackground) {
-        setBackground(new Background(new BackgroundImage(tableBackground,
-                BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT,
-                BackgroundPosition.CENTER, BackgroundSize.DEFAULT)));
     }
 
     private void switchCardBack(String color) {
