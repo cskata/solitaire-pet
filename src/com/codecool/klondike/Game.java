@@ -489,9 +489,9 @@ public class Game extends Pane {
 
             if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
                 lastMovedCard.flip();
-            } else if (!previousPile.getTopCard().isFaceDown()
+            } else if (!previousPile.isEmpty()
                     && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
-                    && !previousPile.isEmpty()
+                    && !previousPile.getTopCard().isFaceDown()
                     && (!previousPile.getPileType().equals(Pile.PileType.DISCARD)
                     || !previousPile.getPileType().equals(Pile.PileType.FOUNDATION))) {
                 previousPile.getTopCard().flip();
