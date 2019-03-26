@@ -19,10 +19,7 @@ public class Game extends Pane {
     private List<Card> deck;
     private List<Card> deckListForReference = new ArrayList<>();
     private List<Card> remainingCardsInTableau = new ArrayList<>();
-    private static Map<String, Integer> moveCounter = new HashMap<String, Integer>() {{
-        put("Card", 0);
-        put("List", 0);
-    }};
+
     private static List<String> movesDuringGame = new ArrayList<>();
     private static List<Card> movedCardsDuringGame = new ArrayList<>();
     private static List<List<Card>> movedCardListsDuringGame = new ArrayList<>();
@@ -55,10 +52,10 @@ public class Game extends Pane {
 
         if (e.getClickCount() == 1) {
             if (clickedPile.getPileType() == Pile.PileType.STOCK) {
-                moveCounter.put("Card", moveCounter.get("Card") + 1);
                 movesDuringGame.add("Card");
                 movedCardsDuringGame.add(card);
                 card.addPreviousPile(clickedPile);
+
                 card.moveToPile(discardPile);
                 card.flip();
                 card.setMouseTransparent(false);
@@ -157,6 +154,8 @@ public class Game extends Pane {
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
+        System.out.println("New moves to undo: " + movesDuringGame);
+        System.out.println("Moved cards: " + movedCardsDuringGame);
         draggedCards.clear();
         checkEndGame();
     };
@@ -324,14 +323,19 @@ public class Game extends Pane {
         List<Card> cardsToAdd = FXCollections.observableArrayList();
         cardsToAdd.addAll(draggedCards);
         Collections.reverse(cardsToAdd);
+        if (sourcePile.getPileType() == Pile.PileType.TABLEAU && draggedCards.size() > 1) {
+            movesDuringGame.add("List");
+            movedCardListsDuringGame.add(draggedCards);
+        }
         for (Card card : cardsToAdd) {
             doCardRelocation(destPile, sourcePile, card);
+            card.addPreviousPile(sourcePile);
+//            movesDuringGame.remove(movesDuringGame.size() - 1);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
 
     private void doCardRelocation(Pile destPile, Pile sourcePile, Card card) {
-        moveCounter.put("Card", moveCounter.get("Card") + 1);
         movesDuringGame.add("Card");
         movedCardsDuringGame.add(card);
 
@@ -488,15 +492,16 @@ public class Game extends Pane {
         if (movesDuringGame.size() > 0) {
 
             String lastMovement = movesDuringGame.get(movesDuringGame.size() - 1);
+            System.out.println("Current last move: " + lastMovement);
 
             if (lastMovement.equals("Card")) {
                 Card lastMovedCard = movedCardsDuringGame.get(movedCardsDuringGame.size() - 1);
                 Pile currentPile = lastMovedCard.getContainingPile();
                 Pile previousPile = lastMovedCard.getLastMovement();
 
-                System.out.println("Card: " + lastMovedCard + " From: " + currentPile.getName() + " To: " + previousPile.getName());
+//                System.out.println("Card: " + lastMovedCard + " From: " + currentPile.getName() + " To: " + previousPile.getName());
 
-                lastMovedCard.undoLastCardMovement();
+                lastMovedCard.undoLastMovement();
                 currentPile.removeCard(lastMovedCard);
                 MouseUtil.autoSlideCard(lastMovedCard, previousPile);
 
@@ -511,11 +516,25 @@ public class Game extends Pane {
                 previousPile.addCard(lastMovedCard);
                 movedCardsDuringGame.remove(movedCardsDuringGame.size() - 1);
                 movesDuringGame.remove(movesDuringGame.size() - 1);
-            } else {
+                System.out.println(movesDuringGame);
+            } else if (lastMovement.equals("List")) {
+                List<Card> lastMovedCards = movedCardListsDuringGame.get(movedCardListsDuringGame.size() - 1);
+                Pile currentPile = lastMovedCards.get(0).getContainingPile();
+                Pile previousPile = lastMovedCards.get(0).getLastMovement();
 
+                previousPile.getTopCard().flip();
+
+                for (Card card : lastMovedCards) {
+                    card.undoLastMovement();
+                    currentPile.removeCard(card);
+                    MouseUtil.autoSlideCard(card, previousPile);
+                    previousPile.addCard(card);
+                }
+
+                movedCardListsDuringGame.remove(movedCardsDuringGame.size() - 1);
+                movesDuringGame.remove(movesDuringGame.size() - 1);
+                System.out.println(movesDuringGame);
             }
-
-
         }
     }
 }
