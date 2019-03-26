@@ -74,7 +74,7 @@ public class MouseUtil {
         double sourceX = currentCard.getLayoutX() + currentCard.getTranslateX();
         double sourceY = currentCard.getLayoutY() + currentCard.getTranslateY();
 
-        animateCardMovement(currentCard, sourceX, sourceY, targetX, targetY + destCardGap, Duration.millis(150),
+        animateCardMovement(currentCard, sourceX, sourceY, targetX, targetY + destCardGap, Duration.millis(0),
                 e -> {
                     currentCard.moveToPile(destPile);
                     currentCard.getDropShadow().setRadius(2);
