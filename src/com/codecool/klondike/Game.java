@@ -237,6 +237,7 @@ public class Game extends Pane {
             for (Card card : discarded) {
                 card.flip();
                 stockPile.addCard(card);
+                card.addMovement(discardPile);
             }
             discardPile.clear();
         }
