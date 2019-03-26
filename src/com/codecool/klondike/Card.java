@@ -21,6 +21,16 @@ public class Card extends ImageView {
     private Image backFace;
     private Image frontFace;
     private Pile containingPile;
+
+    public void setFinalDestPile(Pile finalDestPile) {
+        this.finalDestPile = finalDestPile;
+    }
+
+    public Pile getFinalDestPile() {
+        return finalDestPile;
+    }
+
+    private Pile finalDestPile;
     private DropShadow dropShadow;
 
     static Image cardBackImage;

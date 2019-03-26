@@ -52,7 +52,7 @@ public class MouseUtil {
             double sourceY = currentCard.getLayoutY() + currentCard.getTranslateY();
 
             animateCardMovement(currentCard, sourceX, sourceY, targetX,
-                    targetY + ((destPile.isEmpty() ? i : i + 1) * destCardGap), Duration.millis(150),
+                    targetY + ((destPile.isEmpty() ? i : i + 1) * destCardGap), Duration.millis(900),
                     e -> {
                         currentCard.moveToPile(destPile);
                         currentCard.getDropShadow().setRadius(2);
@@ -60,6 +60,27 @@ public class MouseUtil {
                         currentCard.getDropShadow().setOffsetY(0);
                     });
         }
+    }
+
+
+    public static void autoSlideCardWhenGameIsWon(Card currentCard, Pile destPile) {
+        double destCardGap = destPile.getCardGap();
+        double targetX;
+        double targetY;
+
+        targetX = destPile.getLayoutX();
+        targetY = destPile.getLayoutY();
+
+        double sourceX = currentCard.getLayoutX() + currentCard.getTranslateX();
+        double sourceY = currentCard.getLayoutY() + currentCard.getTranslateY();
+
+        animateCardMovement(currentCard, sourceX, sourceY, targetX, targetY + destCardGap, Duration.millis(150),
+                e -> {
+                    currentCard.moveToPile(destPile);
+                    currentCard.getDropShadow().setRadius(2);
+                    currentCard.getDropShadow().setOffsetX(0);
+                    currentCard.getDropShadow().setOffsetY(0);
+                });
     }
 
     private static void animateCardMovement(

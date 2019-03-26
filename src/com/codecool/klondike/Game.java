@@ -17,6 +17,7 @@ public class Game extends Pane {
 
     private List<Card> deck;
     private List<Card> deckListForReference = new ArrayList<>();
+    private List<Card> remainingCardsInTableu = new ArrayList<>();
 
     private Pile stockPile;
     private Pile discardPile;
@@ -151,6 +152,21 @@ public class Game extends Pane {
 
     public void checkEndGame() {
         if (isGameWon()) {
+            for (Card card : deckListForReference) {
+                if (card.getContainingPile().getPileType().equals(Pile.PileType.TABLEAU)) {
+                    for (Pile pile : foundationPiles) {
+                        if (Card.isSameSuit(card, pile.getTopCard())) {
+                            card.setFinalDestPile(foundationPiles.get(foundationPiles.indexOf(pile)));
+                        }
+                    }
+                    remainingCardsInTableu.add(card);
+                }
+            }
+
+            for (Card card : remainingCardsInTableu) {
+                MouseUtil.autoSlideCardWhenGameIsWon(card, card.getFinalDestPile());
+            }
+
             removeMouseEventHandlers();
             alertWin();
         }
@@ -183,10 +199,11 @@ public class Game extends Pane {
         int cardsInFoundation = 0;
 
         for (Card card: deckListForReference) {
-            if (card.getContainingPile().getPileType().equals(Pile.PileType.FOUNDATION)) {
+            if (!card.isFaceDown() && !card.getContainingPile().getPileType().equals(Pile.PileType.DISCARD)) {
                 cardsInFoundation++;
             }
         }
+
         return cardsInFoundation == 52;
     }
 
