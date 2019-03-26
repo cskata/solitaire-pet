@@ -307,14 +307,12 @@ public class Game extends Pane {
     }
 
     private void relocateCard(Pile destPile, Pile sourcePile) {
-        List<Card> cardsToAdd = FXCollections.observableArrayList();
-        cardsToAdd.addAll(draggedCards);
-        Collections.reverse(cardsToAdd);
-        for (Card card : cardsToAdd) {
+        for (Card card : draggedCards) {
             card.setContainingPile(destPile);
             sourcePile.removeCard(card);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
+        checkEndGame();
     }
 
 
