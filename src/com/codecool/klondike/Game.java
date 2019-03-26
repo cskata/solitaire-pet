@@ -242,6 +242,7 @@ public class Game extends Pane {
             for (Card card : discarded) {
                 card.flip();
                 stockPile.addCard(card);
+                card.addPreviousPile(discardPile);
             }
             discardPile.clear();
         }
@@ -501,18 +502,19 @@ public class Game extends Pane {
 
 //                System.out.println("Card: " + lastMovedCard + " From: " + currentPile.getName() + " To: " + previousPile.getName());
 
-                lastMovedCard.undoLastMovement();
-                currentPile.removeCard(lastMovedCard);
-                MouseUtil.autoSlideCard(lastMovedCard, previousPile);
+//                lastMovedCard.moveToPile(previousPile);
+//                MouseUtil.autoSlideCard(lastMovedCard, previousPile);
 
+                lastMovedCard.undoLastMovement();
                 if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
                     lastMovedCard.flip();
-                } else if (!previousPile.getTopCard().isFaceDown()
+                } else if (!previousPile.isEmpty()
                         && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
-                        && !previousPile.isEmpty()) {
+                        && !previousPile.getTopCard().isFaceDown()) {
                     previousPile.getTopCard().flip();
                 }
 
+                currentPile.removeCard(lastMovedCard);
                 previousPile.addCard(lastMovedCard);
                 movedCardsDuringGame.remove(movedCardsDuringGame.size() - 1);
                 movesDuringGame.remove(movesDuringGame.size() - 1);
