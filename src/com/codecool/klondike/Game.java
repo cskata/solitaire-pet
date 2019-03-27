@@ -40,6 +40,26 @@ public class Game extends Pane {
         put("Loops", "#81ecec");
     }};
 
+    Game() {
+        createGameMenu();
+        deck = Card.createNewDeck();
+        deckListForReference.addAll(deck);
+        Collections.shuffle(deck);
+
+        initPiles();
+        dealCards();
+    }
+
+    Game(String fuckthis) {
+        createGameMenu();
+        deck = Card.createNewDeck();
+        deckListForReference.addAll(deck);
+//        Collections.shuffle(deck);
+
+        initPiles();
+        dealCheatCards();
+    }
+
 
     private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
         Card card = (Card) e.getSource();
@@ -203,19 +223,11 @@ public class Game extends Pane {
                 cardsInFoundation++;
             }
         }
-
+        System.out.println(cardsInFoundation);
         return cardsInFoundation == 52;
     }
 
-    Game() {
-        createGameMenu();
-        deck = Card.createNewDeck();
-        deckListForReference.addAll(deck);
-        Collections.shuffle(deck);
 
-        initPiles();
-        dealCards();
-    }
 
     public void addMouseEventHandlers(Card card) {
         card.setOnMousePressed(onMousePressedHandler);
@@ -377,6 +389,33 @@ public class Game extends Pane {
             getChildren().add(card);
         });
     }
+
+
+    public void dealCheatCards() {
+        Collections.reverse(deck);
+        Iterator<Card> d = deck.iterator();
+        d.forEachRemaining(card -> {
+            stockPile.addCard(card);
+            card.flip();
+            addMouseEventHandlers(card);
+            getChildren().add(card);
+        });
+
+        List<Card> allCard = stockPile.getCards();
+        int index = stockPile.numOfCards() - 1;
+
+        for (int i = 0; i < foundationPiles.size(); i++) {
+                for (int j = 0; j < 13; j++) {
+                    if (j == 12 || j == 11) {
+                        allCard.get(index).moveToPile(tableauPiles.get(i));
+                    } else {
+                        allCard.get(index).moveToPile(foundationPiles.get(i));
+                    }
+                    index--;
+                }
+        }
+    }
+
 
     public void setTableBackground(Image tableBackground) {
         setBackground(new Background(new BackgroundImage(tableBackground,

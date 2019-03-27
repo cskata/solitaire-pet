@@ -26,7 +26,7 @@ public class Klondike extends Application {
     }
 
     public static Scene startGame() {
-        Game game = new Game();
+        Game game = new Game("ads");
         game.setStyle("-fx-background-color: green");
         return new Scene(game, WINDOW_WIDTH, WINDOW_HEIGHT);
     }
