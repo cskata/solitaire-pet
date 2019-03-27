@@ -12,6 +12,7 @@ public class Card extends ImageView {
 
     enum ranks {ACE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING}
 
+    private List<Pile> movements = new ArrayList<>();
     private int suit;
     private int rank;
     private boolean faceDown;
@@ -22,6 +23,7 @@ public class Card extends ImageView {
     private Image frontFace;
     private Pile containingPile;
 
+
     public void setFinalDestPile(Pile finalDestPile) {
         this.finalDestPile = finalDestPile;
     }
@@ -29,7 +31,6 @@ public class Card extends ImageView {
     public Pile getFinalDestPile() {
         return finalDestPile;
     }
-
     private Pile finalDestPile;
     private DropShadow dropShadow;
 
@@ -37,6 +38,19 @@ public class Card extends ImageView {
     private static final Map<String, Image> cardFaceImages = new HashMap<>();
     public static final int WIDTH = 150;
     public static final int HEIGHT = 215;
+
+
+    public Pile getLastMovement() {
+        return this.movements.get(this.movements.size() - 1);
+    }
+
+    public void addMovement(Pile pile) {
+        this.movements.add(pile);
+    }
+
+    public void undoLastMovement() {
+        this.movements.remove(this.movements.size() - 1);
+    }
 
     public Card(int suit, int rank, boolean faceDown) {
         this.suit = suit;
