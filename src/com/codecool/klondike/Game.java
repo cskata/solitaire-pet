@@ -17,17 +17,17 @@ public class Game extends Pane {
     private Stage currentStage = Klondike.getPrimaryStage();
 
     private List<Card> deck;
-    private List<Card> deckListForReference = new ArrayList<>();
-    private List<Card> remainingCardsInTableau = new ArrayList<>();
+    private List<Card> deckListForReference = FXCollections.observableArrayList();
+    private List<Card> remainingCardsInTableau = FXCollections.observableArrayList();
 
-    private static List<String> movesDuringGame = new ArrayList<>();
-    private static List<Card> movedCardsDuringGame = new ArrayList<>();
-    private static List<List<Card>> movedCardListsDuringGame = new ArrayList<>();
+    private static ObservableList<String> movesDuringGame = FXCollections.observableArrayList();
+    private static ObservableList<Card> movedCardsDuringGame = FXCollections.observableArrayList();
+    private static ObservableList<ObservableList<Card>> movedCardListsDuringGame = FXCollections.observableArrayList();
 
     private Pile stockPile;
     private Pile discardPile;
-    private List<Pile> foundationPiles = FXCollections.observableArrayList();
-    private List<Pile> tableauPiles = FXCollections.observableArrayList();
+    private ObservableList<Pile> foundationPiles = FXCollections.observableArrayList();
+    private ObservableList<Pile> tableauPiles = FXCollections.observableArrayList();
 
     private double dragStartX, dragStartY;
     private List<Card> draggedCards = FXCollections.observableArrayList();
@@ -155,10 +155,7 @@ public class Game extends Pane {
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
-//        System.out.println("New moves to undo: " + movesDuringGame);
-//        System.out.println("Moved cards: " + movedCardsDuringGame);
         draggedCards.clear();
-        checkEndGame();
     };
 
     public void checkEndGame() {
@@ -292,10 +289,6 @@ public class Game extends Pane {
 
     private void handleValidMove(Card card, Pile destPile) {
         Pile.PileType currentPileType = card.getContainingPile().getPileType();
-        findOriginalPile(card, destPile, currentPileType);
-    }
-
-    private void findOriginalPile(Card card, Pile destPile, Pile.PileType currentPileType) {
         if (currentPileType.equals(Pile.PileType.DISCARD)) {
             relocateCard(destPile, discardPile);
         } else if (currentPileType.equals(Pile.PileType.TABLEAU)) {
@@ -309,6 +302,7 @@ public class Game extends Pane {
             relocateCard(destPile, sourcePile);
         }
     }
+
 
     /**
      * Automatically flips the top card in the affected tableau pile if the card is facing down
@@ -325,13 +319,19 @@ public class Game extends Pane {
         List<Card> cardsToAdd = FXCollections.observableArrayList();
         cardsToAdd.addAll(draggedCards);
         Collections.reverse(cardsToAdd);
+
         if (sourcePile.getPileType() == Pile.PileType.TABLEAU && draggedCards.size() > 1) {
             movesDuringGame.add("List");
-            movedCardListsDuringGame.add(draggedCards);
+            ObservableList<Card> toAdd = FXCollections.observableArrayList();
+            toAdd.addAll(draggedCards);
+            movedCardListsDuringGame.add(movedCardListsDuringGame.size(), toAdd);
+
+        } else {
+            movesDuringGame.add("Card");
+            movedCardsDuringGame.add(draggedCards.get(0));
         }
         for (Card card : cardsToAdd) {
             doCardRelocation(destPile, sourcePile, card);
-//            movesDuringGame.remove(movesDuringGame.size() - 1);
         }
         MouseUtil.slideToDest(draggedCards, destPile);
     }
@@ -479,7 +479,9 @@ public class Game extends Pane {
         undoButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                handleUndo();
+                if (movesDuringGame.size() > 0) {
+                    handleUndo();
+                }
             }
         });
 
@@ -487,48 +489,43 @@ public class Game extends Pane {
     }
 
     private void handleUndo() {
-        if (movesDuringGame.size() > 0) {
+        String lastMovement = movesDuringGame.get(movesDuringGame.size() - 1);
 
-            String lastMovement = movesDuringGame.get(movesDuringGame.size() - 1);
-            System.out.println("Current last move: " + lastMovement);
+        if (lastMovement.equals("Card")) {
+            Card lastMovedCard = movedCardsDuringGame.get(movedCardsDuringGame.size() - 1);
+            Pile currentPile = lastMovedCard.getContainingPile();
+            Pile previousPile = lastMovedCard.getLastMovement();
 
-            if (lastMovement.equals("Card")) {
-                Card lastMovedCard = movedCardsDuringGame.get(movedCardsDuringGame.size() - 1);
-                Pile currentPile = lastMovedCard.getContainingPile();
-                Pile previousPile = lastMovedCard.getLastMovement();
-
-                lastMovedCard.undoLastMovement();
-                if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
-                    lastMovedCard.flip();
-                } else if (!previousPile.isEmpty()
-                        && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
-                        && !previousPile.getTopCard().isFaceDown()) {
-                    previousPile.getTopCard().flip();
-                }
-
-                currentPile.removeCard(lastMovedCard);
-                previousPile.addCard(lastMovedCard);
-                movedCardsDuringGame.remove(movedCardsDuringGame.size() - 1);
-                movesDuringGame.remove(movesDuringGame.size() - 1);
-                System.out.println(movesDuringGame);
-            } else if (lastMovement.equals("List")) {
-                List<Card> lastMovedCards = movedCardListsDuringGame.get(movedCardListsDuringGame.size() - 1);
-                Pile currentPile = lastMovedCards.get(0).getContainingPile();
-                Pile previousPile = lastMovedCards.get(0).getLastMovement();
-
+            lastMovedCard.undoLastMovement();
+            if (previousPile.getPileType().equals(Pile.PileType.STOCK)) {
+                lastMovedCard.flip();
+            } else if (!previousPile.isEmpty()
+                    && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
+                    && !previousPile.getTopCard().isFaceDown()) {
                 previousPile.getTopCard().flip();
-
-                for (Card card : lastMovedCards) {
-                    card.undoLastMovement();
-                    currentPile.removeCard(card);
-                    MouseUtil.autoSlideCard(card, previousPile);
-                    previousPile.addCard(card);
-                }
-
-                movedCardListsDuringGame.remove(movedCardsDuringGame.size() - 1);
-                movesDuringGame.remove(movesDuringGame.size() - 1);
-                System.out.println(movesDuringGame);
             }
+
+            currentPile.removeCard(lastMovedCard);
+            previousPile.addCard(lastMovedCard);
+            movedCardsDuringGame.remove(movedCardsDuringGame.size() - 1);
+            movesDuringGame.remove(movesDuringGame.size() - 1);
+        } else if (lastMovement.equals("List")) {
+            List<Card> lastMovedCards = movedCardListsDuringGame.get(movedCardListsDuringGame.size() - 1);
+            Pile currentPile = lastMovedCards.get(0).getContainingPile();
+            Pile previousPile = lastMovedCards.get(0).getLastMovement();
+
+            if (!previousPile.isEmpty() && !previousPile.getTopCard().isFaceDown()) {
+                previousPile.getTopCard().flip();
+            }
+
+            for (Card card : lastMovedCards) {
+                card.undoLastMovement();
+                currentPile.removeCard(card);
+                previousPile.addCard(card);
+            }
+
+            movedCardListsDuringGame.remove(movedCardListsDuringGame.size() - 1);
+            movesDuringGame.remove(movesDuringGame.size() - 1);
         }
     }
 }
