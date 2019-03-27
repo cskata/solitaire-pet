@@ -162,6 +162,7 @@ public class Game extends Pane {
 
         if (pile != null) {
             handleValidMove(card, pile);
+            checkEndGame();
         } else {
             draggedCards.forEach(MouseUtil::slideBack);
         }
