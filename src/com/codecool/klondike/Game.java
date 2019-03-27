@@ -218,7 +218,7 @@ public class Game extends Pane {
 
     public boolean isGameWon() {
         int cardsInFoundation = 0;
-        for (Card card: deckListForReference) {
+        for (Card card : deckListForReference) {
             if (!card.isFaceDown() && !card.getContainingPile().getPileType().equals(Pile.PileType.DISCARD)) {
                 cardsInFoundation++;
             }
@@ -495,7 +495,12 @@ public class Game extends Pane {
             } else if (!previousPile.isEmpty()
                     && previousPile.getPileType().equals(Pile.PileType.TABLEAU)
                     && !previousPile.getTopCard().isFaceDown()) {
-                previousPile.getTopCard().flip();
+                if (previousPile.numOfCards() == 1) {
+                    previousPile.getTopCard().flip();
+                } else if (previousPile.numOfCards() > 1
+                        && previousPile.getCards().get(previousPile.numOfCards() - 2).isFaceDown()) {
+                    previousPile.getTopCard().flip();
+                }
             }
 
             currentPile.removeCard(lastMovedCard);
